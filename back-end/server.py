@@ -1,10 +1,12 @@
 from flask import Flask, jsonify, request 
+from flask_cors import CORS
 import prediction
 import os
 import random
 
 def flask_app():
     app = Flask(__name__)
+    CORS(app)
 
     @app.route("/")
     def hello_world():
@@ -18,14 +20,21 @@ def flask_app():
 
         audio_file.save(file_name)
 
+        prediction.clear_instance()
+
         # instantiate keyword spotting service singleton and get prediction
         kss = prediction.Keyword_Spotting_Service_LSTM()
-        predicted_genre = kss.predict(file_name)
+        predicted_genre, confidence_value = kss.predict(file_name)
+
+        prediction.clear_instance()
 
         os.remove(file_name)
 
         #return result as JSON
-        result = {"genre": predicted_genre}
+        result = {
+            "confidence" : confidence_value.item(),
+            "genre" : predicted_genre,
+        }
         return jsonify(result)
 
     @app.route('/predict/gru', methods=['POST'])
@@ -36,14 +45,21 @@ def flask_app():
 
         audio_file.save(file_name)
 
+        prediction.clear_instance()
+
         # instantiate keyword spotting service singleton and get prediction
         kss = prediction.Keyword_Spotting_Service_GRU()
-        predicted_genre = kss.predict(file_name)
+        predicted_genre, confidence_value = kss.predict(file_name)
+
+        prediction.clear_instance()
 
         os.remove(file_name)
 
         #return result as JSON
-        result = {"genre": predicted_genre}
+        result = {
+            "confidence" : confidence_value.item(),
+            "genre" : predicted_genre,
+        }
         return jsonify(result)
     return app
 

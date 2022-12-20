@@ -1,3 +1,5 @@
 tensorflow
 flask
 librosa
+flask-cors
+ffmpeg
